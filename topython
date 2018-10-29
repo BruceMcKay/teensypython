@@ -1,0 +1,57 @@
+import serial
+import time
+import numpy as np
+
+ser=serial.Serial('COM3',baudrate = 15000,timeout=1)
+time.sleep(3)
+numPoints=256
+datalist=[1]*numPoints
+
+
+#square wave
+
+dt = 0.1
+tmax = 1
+steps = int(tmax/dt)
+pulse_duration = 10
+pulse_start = 1
+#
+#there must be a better way than this,....
+clean_signal = [-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50,50,50,-50,-50]
+
+#fetch function to get teensy data from serial
+def getValues():
+    ser.write(b'g')
+    arduinoData=ser.readline().decode().split('\r\n')
+    
+    return arduinoData[0]
+
+
+while(1):
+    userInput=input('request ping y=yes ')#call for input
+    if userInput=='y':#if input is y
+        ser.write(b's')
+        time.sleep(1)
+        for i in range(0,256):  #call ping and fetch data 
+            data=getValues()
+            data=int(data)
+            datalist[i]=data
+        
+        for i in range(0,numPoints) :
+            i=np.correlate(datalist,clean_signal,"same") #corrolate fetched data with ping signal. 
+            j=np.argmax(i)# the maxiumum argument
+      
+        import matplotlib.pyplot as plt
+     
+        x=list(range(len(datalist)))
+        x2= list(range(len(clean_signal)))
+        plt.plot(i)
+        plt.show()
+        plt.plot(x, datalist)
+        plt.plot(x2, clean_signal)
+        plt.show()
+        timedelay=j*12.5*0.0343
+        print(timedelay)
+        
+        
+ 
